@@ -620,7 +620,6 @@ namespace Pinta.Tools
 		{
 			// Try to handle it as a character
 			if (engine.HandleKeyPress (eventKey)) {
-
 				RedrawText (true, true);
 				ResumeEditting();
 				return true;
