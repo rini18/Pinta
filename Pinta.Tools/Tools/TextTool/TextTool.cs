@@ -202,7 +202,7 @@ namespace Pinta.Tools
 
 			if (outline_width == null) {
 				outline_width = new ToolBarComboBox (65, 1, true, "1", "2", "3", "4", "5", "6", "7", "8", "9",
-				"10", "11", "12", "13", "14", "15", "20", "25", "30", "35",
+				"10", "11", "12", "13", "14", "18", "20", "25", "30", "35",
 				"40", "45", "50", "55");
 
 				(outline_width.Child as ComboBoxEntry).Changed += HandleSizeChanged;
@@ -620,7 +620,9 @@ namespace Pinta.Tools
 		{
 			// Try to handle it as a character
 			if (engine.HandleKeyPress (eventKey)) {
+
 				RedrawText (true, true);
+				ResumeEditting();
 				return true;
 			}
 
@@ -639,7 +641,8 @@ namespace Pinta.Tools
 
 		private void StopEditing ()
 		{
-			// If we don't have an open document, some of this stuff will crash
+		
+	// If we don't have an open document, some of this stuff will crash
 			if (!PintaCore.Workspace.HasOpenDocuments)
 				return;
 
@@ -666,11 +669,25 @@ namespace Pinta.Tools
 				engine.Clear ();
 				doc.Workspace.Invalidate (old_bounds);
 				old_bounds = Rectangle.Zero;
+
 				is_editing = false;
 			} catch (Exception) {
 				// Just ignore the error
 			}
 		}
+		
+		private void ResumeEditting()
+		{
+			Document doc = PintaCore.Workspace.ActiveDocument;
+
+				doc.ToolLayer.Clear ();
+				doc.ToolLayer.Hidden = true;
+
+				if (engine.EditMode == EditingMode.Editing) 
+					RedrawText (false,false);
+		}
+		
+		
 		#endregion
 
 		#region Text Drawing Methods
@@ -699,21 +716,24 @@ namespace Pinta.Tools
 				g.AppendPath (PintaCore.Workspace.ActiveDocument.SelectionPath);
 				g.FillRule = Cairo.FillRule.EvenOdd;
 				g.Clip ();
-
 				g.MoveTo (new Cairo.PointD (engine.Origin.X, engine.Origin.Y));
 				g.Color = PintaCore.Palette.PrimaryColor;
 
-				//Fill in background
-				if (BackgroundFill) {
+
+				if (BackgroundFill)	{
+
 					using (var g2 = new Cairo.Context (surf)) {
-						g2.FillRectangle (engine.GetLayoutBounds ().ToCairoRectangle (), PintaCore.Palette.SecondaryColor);
+					
+						g2.FillRectangle (engine.GetLayoutBounds ().ToCairoRectangle (),PintaCore.Palette.SecondaryColor);
+
 					}
-				}
-
-				// Draw the text
-				if (FillText)
+}
+				
+				if (FillText) {
 					Pango.CairoHelper.ShowLayout (g, engine.Layout);
+}				
 
+			
 				if (FillText && StrokeText) {
 					g.Color = PintaCore.Palette.SecondaryColor;
 					g.LineWidth = OutlineWidth;
